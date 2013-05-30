@@ -1,0 +1,30 @@
+# MAC OSX
+*.DS_Store
+
+# KDE
+.directory
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+ 
+# Compiled Dynamic libraries
+*.so
+ 
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Qt Creator user files
+*.user
+
+# Compiled Translations
+translations/*.qm
+ 
+.settings/
+arm/
+x86/
+.metadata/*
+/.metadata/
