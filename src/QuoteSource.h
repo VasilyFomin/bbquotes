@@ -31,11 +31,15 @@ signals:
 	void quoteChanged();
 
 private slots:
-	void onRequestFinished(QNetworkReply*);
+	void onRequestFinished();
+	void onRequestError(QNetworkReply::NetworkError);
 
 private:
 	Quote * m_pQuote;
 	QNetworkAccessManager *m_pNetworkManager;
+	QNetworkRequest m_request;
+	QUrl m_enUrl;
+	QUrl m_ruUrl;
 };
 
 #endif /* QUOTESOURCE_H_ */

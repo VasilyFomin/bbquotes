@@ -3,6 +3,7 @@
 
 #include <QLocale>
 #include <QTranslator>
+#include <QTime>
 #include "applicationui.hpp"
 
 // include JS Debugger / CS Profiler enabler
@@ -23,6 +24,10 @@ Q_DECL_EXPORT int main(int argc, char **argv)
     if (translator.load(filename, "app/native/qm")) {
         app.installTranslator( &translator );
     }
+
+    // Init random numbers generator
+    QTime time = QTime::currentTime();
+    qsrand((uint)time.msec());
 
     new ApplicationUI(&app);
 

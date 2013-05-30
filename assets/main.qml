@@ -15,10 +15,7 @@ Page {
         	        console.log(quoteSource.quote.quoteAuthor);
                     console.log(quoteSource.quote.quoteText);
                     console.log(quoteSource.quote.quoteLink);
-                    
-//                    quoteAuthor.text = quoteSource.quote.quoteAuthor;
-//        	        quoteText.text = quoteSource.quote.quoteText;
-//                    quoteLink.text = quoteSource.quote.quoteLink;      
+
 					quoteBubble.quoteText = quoteSource.quote.quoteText;
 					quoteBubble.quoteAuthor = quoteSource.quote.quoteAuthor;
                 }
@@ -51,11 +48,6 @@ Page {
                     if (quoteSource.quote.quoteAuthor != null)
                     {
                         console.log("quoteAuthor not null");
-//                        blackberry.invoke.invoke(
-//                        {
-//                            target: "sys.browser",
-//                            uri: 
-//                        });
                     }
                 }
             }
