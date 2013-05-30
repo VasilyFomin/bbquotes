@@ -23,8 +23,7 @@ public:
 	explicit QuoteSource(QObject * parent = 0);
 
 	Q_PROPERTY(Quote * quote READ quote NOTIFY quoteChanged)
-	Quote * quote() const { return m_pQuote; }
-
+	Quote * quote() const;
 	Q_INVOKABLE void refresh();
 
 signals:

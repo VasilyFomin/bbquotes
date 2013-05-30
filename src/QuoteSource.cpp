@@ -10,16 +10,47 @@
 #include <QtNetwork/qnetworkrequest.h>
 #include <QtNetwork/qnetworkreply.h>
 #include <QUrl>
+#include <QtXml/QDomDocument>
+#include <QtXml/QDomNodeList>
 
 #include <bb/data/JsonDataAccess>
+#include <bb/data/XmlDataAccess>
 
 #include "Quote.h"
 #include "QuoteSource.h"
 
 namespace {
+	static const QString API_BASE_URL = "http://api.forismatic.com/api/1.0/";
+
 	int getRandomKey(int beginRange, int endRange)
 	{
 		return qrand() % ((endRange + 1) - beginRange) + beginRange;
+	}
+
+	bool parseQuoteRawData(QByteArray data, Quote* pOutQuote)
+	{
+		if (!pOutQuote || data.isEmpty())
+			return false;
+
+		bb::data::XmlDataAccess xda;
+		QVariantMap xdaDataMap = xda.loadFromBuffer(data).toMap();
+		if (xda.hasError())
+		{
+			qDebug() << xda.error();
+			return false;
+		}
+
+		QVariantMap quoteMap = xdaDataMap["quote"].toMap();
+
+		qDebug() << quoteMap["quoteText"];
+		qDebug() << quoteMap["quoteAuthor"];
+		qDebug() << quoteMap["quoteLink"];
+
+		pOutQuote->setQuoteText(quoteMap["quoteText"].toString());
+		pOutQuote->setQuoteAuthor(quoteMap["quoteAuthor"].toString());
+		pOutQuote->setQuoteLink(quoteMap["quoteLink"].toString());
+
+		return true;
 	}
 }
 
@@ -28,24 +59,24 @@ QuoteSource::QuoteSource(QObject * parent)
 {
 	m_pQuote = new Quote(this);
 	m_pNetworkManager = new QNetworkAccessManager(this);
+}
 
-	m_enUrl = QUrl("http://api.forismatic.com/api/1.0/");
-	m_enUrl.addQueryItem("method", "getQuote");
-	m_enUrl.addQueryItem("format", "json");
-	m_enUrl.addQueryItem("lang", "en");
-	m_enUrl.addQueryItem("key", QString::number(getRandomKey(0, 99999)));
-
-	m_ruUrl = QUrl("http://api.forismatic.com/api/1.0/");
-	m_ruUrl.addQueryItem("method", "getQuote");
-	m_ruUrl.addQueryItem("format", "json");
-	m_ruUrl.addQueryItem("lang", "ru");
-	m_ruUrl.addQueryItem("key", QString::number(getRandomKey(0, 99999)));
+Quote* QuoteSource::quote() const
+{
+	qDebug() << "in quote";
+	return m_pQuote;
 }
 
 void QuoteSource::refresh()
 {
-	qDebug() << m_enUrl;
-	QNetworkRequest request(m_enUrl);
+	QUrl url = QUrl(API_BASE_URL);
+	url.addQueryItem("method", "getQuote");
+	url.addQueryItem("format", "xml");
+	url.addQueryItem("lang", "en");
+	url.addQueryItem("key", QString::number(getRandomKey(0, 99999)));
+	qDebug() << url;
+
+	QNetworkRequest request(url);
 	QNetworkReply * pReply = m_pNetworkManager->get(request);
 	connect(pReply, SIGNAL(finished()), this, SLOT(onRequestFinished()));
 	connect(pReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(onRequestError(QNetworkReply::NetworkError)));
@@ -59,17 +90,15 @@ void QuoteSource::onRequestFinished()
 
 	qDebug() << "onRequestFinished";
 	QByteArray data = pReply->readAll();
-	qDebug() << data;
 
-	bb::data::JsonDataAccess jda;
-	QVariant rawQuoteData = jda.loadFromBuffer(data);
-	QVariantMap quoteObjectMap = rawQuoteData.toMap();
+	if (parseQuoteRawData(data, m_pQuote))
+	{
+		qDebug() << m_pQuote->quoteText();
+		qDebug() << m_pQuote->quoteAuthor();
+		qDebug() << m_pQuote->quoteLink();
 
-	m_pQuote->setQuoteText(quoteObjectMap["quoteText"].toString());
-	m_pQuote->setQuoteAuthor(quoteObjectMap["quoteAuthor"].toString());
-	m_pQuote->setQuoteLink(quoteObjectMap["quoteLink"].toString());
-
-	emit quoteChanged();
+		emit quoteChanged();
+	}
 
 	pReply->deleteLater();
 }
